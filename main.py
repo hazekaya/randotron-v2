@@ -2,6 +2,7 @@ import os
 import random
 import sys
 import requests
+from PIL import Image
 from dotenv import load_dotenv
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -30,8 +31,12 @@ class Randotron(QtWidgets.QMainWindow):
         self.text = QtWidgets.QLabel("", alignment=QtCore.Qt.AlignCenter)
 
         # image from url
-        self.image_label = QtWidgets.QLabel()
+        self.image_label = QtWidgets.QLabel(self)
         self.pixmap = QtGui.QPixmap()
+
+        # backdrop from url
+        self.backdrop_label = QtWidgets.QLabel(self)
+        self.backdrop_pixmap = QtGui.QPixmap()
 
         # create layout and add widgets
         self.layout = QtWidgets.QVBoxLayout(self.centralWidget)
@@ -88,14 +93,20 @@ class Randotron(QtWidgets.QMainWindow):
             data = response.json()
             results = data.get("results")
             poster_path = results[0].get("poster_path")
-
+            backdrop_path = results[0].get("backdrop_path")
             poster_url = f"https://image.tmdb.org/t/p/w342{poster_path}"
-
+            backdrop_url = f"https://image.tmdb.org/t/p/original{backdrop_path}"
             self.text.setText(movie_title)
 
             self.pixmap.loadFromData(requests.get(poster_url).content)
             self.image_label.setPixmap(self.pixmap)
             self.image_label.setAlignment(QtCore.Qt.AlignCenter)
+
+            if backdrop_url != "NoneType":
+                print(backdrop_url)
+                self.backdrop_pixmap.loadFromData(requests.get(backdrop_url).content)
+                self.backdrop_label.setPixmap(self.backdrop_pixmap)
+                self.setCentralWidget(self.backdrop_label)
 
         except requests.exceptions.HTTPError as err:
             print(err)
