@@ -32,6 +32,7 @@ class Randotron(QtWidgets.QMainWindow):
 
         # image from url
         self.image_label = QtWidgets.QLabel(self)
+        self.image_label.setAlignment(QtCore.Qt.AlignCenter)
         self.pixmap = QtGui.QPixmap()
 
         # backdrop from url
@@ -80,30 +81,39 @@ class Randotron(QtWidgets.QMainWindow):
             self.tmdb_image(random.choice(movie_list))
 
     def tmdb_image(self, movie_title):
-        tmdb_url = TMDB_URL + movie_title
-        headers = {
-            "authorization": "Bearer " + TMDB_KEY,
-            "accept": "application/json",
-        }
+        if movie_title is None:
+            self.set_movie_title("No Movies Found")
+        else:
+            tmdb_url = f"{TMDB_URL}{movie_title}"  # TMDB_URL + movie_title
+            headers = {
+                "authorization": f"Bearer {TMDB_KEY}",
+                "accept": "application/json",
+            }
 
-        try:
-            response = requests.get(url=tmdb_url, headers=headers)
-            response.raise_for_status()
+            try:
+                response = requests.get(url=tmdb_url, headers=headers)
+                response.raise_for_status()
 
-            data = response.json()
-            results = data.get("results")
-            poster_path = results[0].get("poster_path")
-            backdrop_path = results[0].get("backdrop_path")
-            poster_url = f"https://image.tmdb.org/t/p/w342{poster_path}"
-            backdrop_url = f"https://image.tmdb.org/t/p/original{backdrop_path}"
-            self.text.setText(movie_title)
+                data = response.json()
+                results = data.get("results")
 
-            self.pixmap.loadFromData(requests.get(poster_url).content)
-            self.image_label.setPixmap(self.pixmap)
-            self.image_label.setAlignment(QtCore.Qt.AlignCenter)
+                poster_path = results[0].get("poster_path")
+                backdrop_path = results[0].get("backdrop_path")
 
-        except requests.exceptions.HTTPError as err:
-            print(err)
+                poster_url = f"https://image.tmdb.org/t/p/w342{poster_path}"
+                backdrop_url = f"https://image.tmdb.org/t/p/original{backdrop_path}"
+
+                self.set_movie_title(movie_title)
+                self.load_image(poster_url, self.pixmap, self.image_label)
+            except requests.exceptions.HTTPError as err:
+                print(err)
+
+    def load_image(self, img_url, img_pixmap: QtGui.QPixmap, img_lbl: QtWidgets.QLabel):
+        img_pixmap.loadFromData(requests.get(img_url).content)
+        img_lbl.setPixmap(img_pixmap)
+
+    def set_movie_title(self, movie_title):
+        self.text.setText(movie_title)
 
 
 if __name__ == '__main__':
