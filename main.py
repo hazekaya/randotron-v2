@@ -1,33 +1,47 @@
+import os
 import random
 import sys
-import urllib
-
 import requests
+from PIL import Image
+from dotenv import load_dotenv
 from PySide6 import QtCore, QtGui, QtWidgets
 
-JELLYFIN_KEY = "e9e4559fe74a4466b197b0955355cf67"
-JELLYFIN_URL = "http://192.168.0.253:8096"
-JELLYFIN_USER = "aa01a24ed1344f6993d1176fff245d14"
-API_URL = f"{JELLYFIN_URL}/Users/{JELLYFIN_USER}/Items?IncludeItemTypes=Movie&Filters=IsUnplayed&Recursive=true&Fields=Path"
-HEADERS = {
-    "X-Emby-Token": JELLYFIN_KEY,
-    "Accept": "application/json"
-}
+load_dotenv()
+
+JELLYFIN_URL = os.getenv("JELLYFIN_URL")
+JELLYFIN_KEY = os.getenv("JELLYFIN_KEY")
+JELLYFIN_USER = os.getenv("JELLYFIN_USER")
+
+TMDB_URL = os.getenv("TMDB_URL")
+TMDB_KEY = os.getenv("TMDB_KEY")
+
 
 class Randotron(QtWidgets.QMainWindow):
     def __init__(self):
         super(Randotron, self).__init__()
+        self.rng_movie_title = None
+
+        self.setWindowTitle("RANDOTRON")
 
         self.centralWidget = QtWidgets.QWidget()
         self.setCentralWidget(self.centralWidget)
 
         # create widgets to add to layout
         self.button = QtWidgets.QPushButton("Randotron Activate")
-        self.text = QtWidgets.QLabel("RANDOTRON", alignment=QtCore.Qt.AlignCenter)
+        self.text = QtWidgets.QLabel("", alignment=QtCore.Qt.AlignCenter)
+
+        # image from url
+        self.image_label = QtWidgets.QLabel(self)
+        self.pixmap = QtGui.QPixmap()
+
+        # backdrop from url
+        self.backdrop_label = QtWidgets.QLabel(self)
+        self.backdrop_pixmap = QtGui.QPixmap()
 
         # create layout and add widgets
         self.layout = QtWidgets.QVBoxLayout(self.centralWidget)
         self.layout.addWidget(self.text)
+        self.layout.addWidget(self.image_label)
         self.layout.addWidget(self.button)
 
         # set layout
@@ -37,10 +51,16 @@ class Randotron(QtWidgets.QMainWindow):
 
     def randotron(self):
         movie_list = []
-        print(API_URL)
+
+        headers = {
+            "X-Emby-Token": JELLYFIN_KEY,
+            "Accept": "application/json"
+        }
+
+        url = f"{JELLYFIN_URL}/Users/{JELLYFIN_USER}/Items?IncludeItemTypes=Movie&Filters=IsUnplayed&Recursive=true&Fields=Path"
 
         try:
-            response = requests.get(url=API_URL, headers=HEADERS)
+            response = requests.get(url=url, headers=headers)
             response.raise_for_status()
 
             data = response.json()
@@ -56,8 +76,34 @@ class Randotron(QtWidgets.QMainWindow):
         except requests.exceptions.HTTPError as err:
             print(err)
 
-        print(random.choice(movie_list))
+        if movie_list is not None:
+            self.tmdb_image(random.choice(movie_list))
 
+    def tmdb_image(self, movie_title):
+        tmdb_url = TMDB_URL + movie_title
+        headers = {
+            "authorization": "Bearer " + TMDB_KEY,
+            "accept": "application/json",
+        }
+
+        try:
+            response = requests.get(url=tmdb_url, headers=headers)
+            response.raise_for_status()
+
+            data = response.json()
+            results = data.get("results")
+            poster_path = results[0].get("poster_path")
+            backdrop_path = results[0].get("backdrop_path")
+            poster_url = f"https://image.tmdb.org/t/p/w342{poster_path}"
+            backdrop_url = f"https://image.tmdb.org/t/p/original{backdrop_path}"
+            self.text.setText(movie_title)
+
+            self.pixmap.loadFromData(requests.get(poster_url).content)
+            self.image_label.setPixmap(self.pixmap)
+            self.image_label.setAlignment(QtCore.Qt.AlignCenter)
+
+        except requests.exceptions.HTTPError as err:
+            print(err)
 
 
 if __name__ == '__main__':
