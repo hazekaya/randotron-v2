@@ -14,6 +14,13 @@ HEADERS = {
     "Accept": "application/json"
 }
 
+TMDB_URL = f"https://api.themoviedb.org/3/search/movie?query="
+TMDB_HEADER = {
+    'authorization': 'Bearer ' + "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmOWQ0N2MyNTExZjc1NGZhODJlZjJiMjM3ZjNkMmIxNyIsIm5iZiI6MTcyMTE3NjgwMC4zOTgwMDAyLCJzdWIiOiI2Njk3MTJlMDE4ZGE0ZjViNTIxNTY5ZTYiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.hgd8T9etz1d8SLCf30ZdIl2tc9AYL4bcbt8hgJg7DLg",
+    'accept': 'application/json',
+}
+
+
 class Randotron(QtWidgets.QMainWindow):
     def __init__(self):
         super(Randotron, self).__init__()
@@ -56,8 +63,23 @@ class Randotron(QtWidgets.QMainWindow):
         except requests.exceptions.HTTPError as err:
             print(err)
 
-        print(random.choice(movie_list))
+        movie_title = random.choice(movie_list)
+        tmdb_url = TMDB_URL + movie_title
 
+        try:
+
+            response = requests.get(url=tmdb_url, headers=TMDB_HEADER)
+            response.raise_for_status()
+
+            data = response.json()
+            result = data.get("results")
+            poster_path = result[0].get("poster_path")
+
+            print(poster_path)
+
+            "https://image.tmdb.org/t/p/w500//nNjFlv4mJlkGLzfnLoU68YSy9KH.jpg"
+        except requests.exceptions.HTTPError as err:
+            print(err)
 
 
 if __name__ == '__main__':
