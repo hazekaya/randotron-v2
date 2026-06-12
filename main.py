@@ -102,12 +102,6 @@ class Randotron(QtWidgets.QMainWindow):
             self.image_label.setPixmap(self.pixmap)
             self.image_label.setAlignment(QtCore.Qt.AlignCenter)
 
-            if backdrop_url != "NoneType":
-                print(backdrop_url)
-                self.backdrop_pixmap.loadFromData(requests.get(backdrop_url).content)
-                self.backdrop_label.setPixmap(self.backdrop_pixmap)
-                self.setCentralWidget(self.backdrop_label)
-
         except requests.exceptions.HTTPError as err:
             print(err)
 
