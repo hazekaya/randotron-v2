@@ -4,6 +4,7 @@ import sys
 import requests
 from dotenv import load_dotenv
 from PySide6 import QtCore, QtGui, QtWidgets
+from utils import load_image
 
 load_dotenv()
 
@@ -13,11 +14,6 @@ JELLYFIN_USER = os.getenv("JELLYFIN_USER")
 
 TMDB_URL = os.getenv("TMDB_URL")
 TMDB_KEY = os.getenv("TMDB_KEY")
-
-
-def load_image(img_url, img_pixmap: QtGui.QPixmap, img_lbl: QtWidgets.QLabel):
-    img_pixmap.loadFromData(requests.get(img_url).content)
-    img_lbl.setPixmap(img_pixmap)
 
 
 class Randotron(QtWidgets.QMainWindow):
