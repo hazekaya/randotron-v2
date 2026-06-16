@@ -2,7 +2,6 @@ import os
 import random
 import sys
 import requests
-from PIL import Image
 from dotenv import load_dotenv
 from PySide6 import QtCore, QtGui, QtWidgets
 
@@ -14,6 +13,11 @@ JELLYFIN_USER = os.getenv("JELLYFIN_USER")
 
 TMDB_URL = os.getenv("TMDB_URL")
 TMDB_KEY = os.getenv("TMDB_KEY")
+
+
+def load_image(img_url, img_pixmap: QtGui.QPixmap, img_lbl: QtWidgets.QLabel):
+    img_pixmap.loadFromData(requests.get(img_url).content)
+    img_lbl.setPixmap(img_pixmap)
 
 
 class Randotron(QtWidgets.QMainWindow):
@@ -104,13 +108,9 @@ class Randotron(QtWidgets.QMainWindow):
                 backdrop_url = f"https://image.tmdb.org/t/p/original{backdrop_path}"
 
                 self.set_movie_title(movie_title)
-                self.load_image(poster_url, self.pixmap, self.image_label)
+                load_image(poster_url, self.pixmap, self.image_label)
             except requests.exceptions.HTTPError as err:
                 print(err)
-
-    def load_image(self, img_url, img_pixmap: QtGui.QPixmap, img_lbl: QtWidgets.QLabel):
-        img_pixmap.loadFromData(requests.get(img_url).content)
-        img_lbl.setPixmap(img_pixmap)
 
     def set_movie_title(self, movie_title):
         self.text.setText(movie_title)
