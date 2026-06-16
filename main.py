@@ -39,10 +39,6 @@ class Randotron(QtWidgets.QMainWindow):
         self.image_label.setAlignment(QtCore.Qt.AlignCenter)
         self.pixmap = QtGui.QPixmap()
 
-        # backdrop from url
-        self.backdrop_label = QtWidgets.QLabel(self)
-        self.backdrop_pixmap = QtGui.QPixmap()
-
         # create layout and add widgets
         self.layout = QtWidgets.QVBoxLayout(self.centralWidget)
         self.layout.addWidget(self.text)
@@ -102,10 +98,8 @@ class Randotron(QtWidgets.QMainWindow):
                 results = data.get("results")
 
                 poster_path = results[0].get("poster_path")
-                backdrop_path = results[0].get("backdrop_path")
 
                 poster_url = f"https://image.tmdb.org/t/p/w342{poster_path}"
-                backdrop_url = f"https://image.tmdb.org/t/p/original{backdrop_path}"
 
                 self.set_movie_title(movie_title)
                 load_image(poster_url, self.pixmap, self.image_label)
